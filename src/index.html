@@ -1,0 +1,213 @@
+<html>
+	<head>
+		<title>Minetest Formspec Creator</title>
+
+		<style>
+			#below {
+				position : absolute;
+				left : 0;
+				top : 0;
+				z-index : 0;
+			}
+
+			#screen {
+				position : absolute;
+				left : 0;
+				top : 0;
+				z-index : 1;
+			}
+		</style>
+	</head>
+	<body onload="load();">
+		<script>
+			var c;
+			var ctx;
+
+			var mousePressed = false;
+			var mouseX = 0;;
+			var mouseY = 0;
+
+			var objs = [];
+
+			var cellX = 50;
+			var cellY = 50;
+			var space = 5;
+
+
+			var sx = -1;
+			var sy = -1;
+			var ex = -1;
+			var ey = -1;
+
+			var components = ["size", "list", "label", "button", "field"];
+			var selectedComponent = 3;
+		
+			function load() {
+				c = document.getElementById("screen");
+				ctx = c.getContext("2d");
+
+				c.width = document.body.clientWidth;
+				c.height = document.body.clientHeight;
+
+				below = document.getElementById("below");
+				belowCtx = below.getContext("2d");
+
+				below.width = document.body.clientWidth;
+				below.height = document.body.clientHeight;
+
+				c.onmousedown = mouseDown;
+				c.onmouseup = mouseUp;
+				c.onmousemove = mouseMove;
+
+				document.onkeydown = keyDown;
+
+				c.onwheel = mouseWheel;
+			}
+	
+			function mouseDown(e) {
+				if(e.which == 1) {
+					mousePressed = true;
+					sx = Math.round(e.clientX/(cellX+space));
+					sy = Math.round(e.clientY/(cellY+space));
+				}
+			}
+
+			function mouseUp(e) {
+				if(e.which == 1) {
+					mousePressed = false;
+					if(!(sx == -1 || sy == -1 || ex == -1 || ey == -1)) {
+						ex = Math.round(e.clientX/(cellX+space));
+						ey = Math.round(e.clientY/(cellY+space));
+						updateBelow();
+						addObject();
+					} else {
+						updateBelow();
+					}
+				} else {
+					sx = -1;
+					sy = -1;
+					ex = -1;
+					ey = -1;
+					updateBelow();
+				}
+			}
+	
+			function mouseMove(e) {
+				mouseX = e.clientX;
+				mouseY = e.clientY;
+
+				if(e.which == 1) {
+					ex = Math.round(e.clientX/(cellX+space));
+					ey = Math.round(e.clientY/(cellY+space));
+				}
+
+				updateBelow();
+			}
+
+			function mouseWheel(e) {
+				var d = 0;
+				if(e.deltaY > 0) {
+					d = 1;
+				} else {
+					d = -1;
+				}
+				selectedComponent += d;
+
+				if(selectedComponent < 0) {
+					selectedComponent = components.length-1;
+				}
+				if(selectedComponent > components.length-1) {
+					selectedComponent = 0;
+				}
+
+				updateBelow();
+			}
+
+			function keyDown(e) {
+				if(e.keyCode == 69) {
+					export_formspec();
+				}
+			}
+
+			function addObject() {
+				if(components[selectedComponent]) {
+					if(components[selectedComponent] == "size") {
+						objs.push(["size",ex-sx, ey-sy]);
+					}
+
+					if(components[selectedComponent] == "list") {
+						objs.push(["list", prompt("Inventory Location:") || "current_player", prompt("Name:") || "main", sx, sy, ex-sx, ey-sy]);
+					}
+
+					if(components[selectedComponent] == "label") {
+						objs.push(["label", sx, sy, prompt("Text:") || ""]);
+					}
+					
+					if(components[selectedComponent] == "button") {
+						objs.push(["button", sx, sy, ex-sx, ey-sy, prompt("Name:") || "btn", prompt("Text:") || "Button"]);
+					}
+
+					if(components[selectedComponent] == "field") {
+						objs.push(["field", sx, sy, ex-sx, ey-sy, prompt("Name:") || "field", prompt("Text:") || "Field", prompt("Default:") || ""]);
+					}
+
+					draw();
+				}		
+			}
+
+			function draw() {
+				ctx.clearRect(0,0,c.width,c.height);
+				for(var i = 0; i < objs.length; i++) {
+					if(objs[i][0] == "size") {
+						ctx.strokeRect(0, 0, objs[i][1]*(cellX+space), objs[i][2]*(cellY+space));
+					} else if(objs[i][0] == "list") {
+						for(var j = 0; j < objs[i][5]; j++) {
+							for(var k = 0; k < objs[i][6]; k++) {
+								ctx.strokeStyle = "#000000";
+								ctx.strokeRect(objs[i][3]*(cellX+space) + j*(cellX+space), objs[i][4]*(cellY+space) + k*(cellY+space), cellX, cellY);
+							}
+						}
+					} else if(objs[i][0] == "label") {
+						ctx.fillText(objs[i][3],objs[i][1]*(cellX+space),objs[i][2]*(cellY+space));
+					} else {
+						ctx.fillText(objs[i][0],objs[i][1]*(cellX+space),objs[i][2]*(cellY+space));
+						ctx.strokeRect(objs[i][1]*(cellX+space), objs[i][2]*(cellY+space), objs[i][3]*(cellX+space), objs[i][4]*(cellY+space));
+					}
+				}
+			}
+
+			function updateBelow() {
+				belowCtx.clearRect(0,0,below.width,below.height);
+				if(mousePressed) {
+					belowCtx.fillText(components[selectedComponent],sx*(cellX+space),sy*(cellY+space)-5);
+					belowCtx.strokeRect(sx*(cellX+space), sy*(cellY+space), (ex-sx)*(cellX+space), (ey-sy)*(cellY+space));
+
+					belowCtx.fillText((ex-sx) + " x " + (ey-sy),sx*(cellX+space)+((ex-sx)*(cellX+space)/2),sy*(cellY+space)+((ey-sy)*(cellY+space)/2));
+				}
+			}
+
+			function export_formspec() {
+				s = "";
+				for(var i = 0; i < objs.length; i++) {
+					s += objs[i][0] + "[";
+					if(objs[i][0] == "list") {
+						s += objs[i][1] + ";" + objs[i][2] + ";" + objs[i][3] + "," + objs[i][4] + ";" + objs[i][5] + "," + objs[i][6] + ";";
+					} else {
+						for(var j = 1; j < objs[i].length; j++) {
+							s += objs[i][j];
+							if(j == 1 || s == 3) {
+								s += ",";
+							} else {
+								s += ";";
+							}
+						}
+					}
+					s += "]\n";
+				}
+				alert(s);
+			}
+		</script>
+		<canvas id = "screen"></canvas>
+		<canvas id = "below"></canvas>
+	</body>
+</html>
