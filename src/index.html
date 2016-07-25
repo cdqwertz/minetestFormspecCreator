@@ -16,6 +16,15 @@
 				top : 0;
 				z-index : 1;
 			}
+
+			#code {
+				position : fixed;
+				left : 50%;
+				top : 0;
+				width : 50%;
+				height : 100%;
+				z-index : 2;
+			}
 		</style>
 	</head>
 	<body onload="load();">
@@ -23,8 +32,12 @@
 			var c;
 			var ctx;
 
+			var below, belowCtx;
+
+			var textarea;
+
 			var mousePressed = false;
-			var mouseX = 0;;
+			var mouseX = 0;
 			var mouseY = 0;
 
 			var objs = [];
@@ -38,6 +51,9 @@
 			var sy = -1;
 			var ex = -1;
 			var ey = -1;
+
+			var dist_top = 100;
+			var dist_left = 100;
 
 			var components = ["size", "list", "label", "button", "field"];
 			var selectedComponent = 3;
@@ -55,6 +71,11 @@
 				below.width = document.body.clientWidth;
 				below.height = document.body.clientHeight;
 
+				textarea = document.getElementById("code");
+				textarea.value = "";
+				textarea.onchange = import_formspec;
+				textarea.onkeyup = import_formspec;
+
 				c.onmousedown = mouseDown;
 				c.onmouseup = mouseUp;
 				c.onmousemove = mouseMove;
@@ -65,19 +86,25 @@
 			}
 	
 			function mouseDown(e) {
+				mouseX = e.clientX-dist_left;
+				mouseY = e.clientY-dist_top;
 				if(e.which == 1) {
 					mousePressed = true;
-					sx = Math.round(e.clientX/(cellX+space));
-					sy = Math.round(e.clientY/(cellY+space));
+					sx = Math.round(mouseX/(cellX+space));
+					sy = Math.round(mouseY/(cellY+space));
+					console.log(sx + " x " + sy);
 				}
 			}
 
 			function mouseUp(e) {
+				mouseX = e.clientX-dist_left;
+				mouseY = e.clientY-dist_top;
 				if(e.which == 1) {
 					mousePressed = false;
 					if(!(sx == -1 || sy == -1 || ex == -1 || ey == -1)) {
-						ex = Math.round(e.clientX/(cellX+space));
-						ey = Math.round(e.clientY/(cellY+space));
+						ex = Math.round(mouseX/(cellX+space));
+						ey = Math.round(mouseY/(cellY+space));
+						console.log(sx + " x " + sy);
 						updateBelow();
 						addObject();
 					} else {
@@ -93,12 +120,13 @@
 			}
 	
 			function mouseMove(e) {
-				mouseX = e.clientX;
-				mouseY = e.clientY;
+				mouseX = e.clientX-dist_left;
+				mouseY = e.clientY-dist_top;
+				
 
 				if(e.which == 1) {
-					ex = Math.round(e.clientX/(cellX+space));
-					ey = Math.round(e.clientY/(cellY+space));
+					ex = Math.round(mouseX/(cellX+space));
+					ey = Math.round(mouseY/(cellY+space));
 				}
 
 				updateBelow();
@@ -124,9 +152,9 @@
 			}
 
 			function keyDown(e) {
-				if(e.keyCode == 69) {
-					export_formspec();
-				}
+				//if(e.keyCode == 69) {
+					//export_formspec();
+				//}
 			}
 
 			function addObject() {
@@ -152,6 +180,7 @@
 					}
 
 					draw();
+					export_formspec();
 				}		
 			}
 
@@ -159,19 +188,19 @@
 				ctx.clearRect(0,0,c.width,c.height);
 				for(var i = 0; i < objs.length; i++) {
 					if(objs[i][0] == "size") {
-						ctx.strokeRect(0, 0, objs[i][1]*(cellX+space), objs[i][2]*(cellY+space));
+						ctx.strokeRect(dist_left+0, dist_top+0, objs[i][1]*(cellX+space), objs[i][2]*(cellY+space));
 					} else if(objs[i][0] == "list") {
 						for(var j = 0; j < objs[i][5]; j++) {
 							for(var k = 0; k < objs[i][6]; k++) {
 								ctx.strokeStyle = "#000000";
-								ctx.strokeRect(objs[i][3]*(cellX+space) + j*(cellX+space), objs[i][4]*(cellY+space) + k*(cellY+space), cellX, cellY);
+								ctx.strokeRect(dist_left+objs[i][3]*(cellX+space) + j*(cellX+space), dist_top+objs[i][4]*(cellY+space) + k*(cellY+space), cellX, cellY);
 							}
 						}
 					} else if(objs[i][0] == "label") {
-						ctx.fillText(objs[i][3],objs[i][1]*(cellX+space),objs[i][2]*(cellY+space));
+						ctx.fillText(objs[i][3],dist_left+objs[i][1]*(cellX+space),dist_top+objs[i][2]*(cellY+space));
 					} else {
-						ctx.fillText(objs[i][0],objs[i][1]*(cellX+space),objs[i][2]*(cellY+space));
-						ctx.strokeRect(objs[i][1]*(cellX+space), objs[i][2]*(cellY+space), objs[i][3]*(cellX+space), objs[i][4]*(cellY+space));
+						ctx.fillText(objs[i][0],dist_left+objs[i][1]*(cellX+space),dist_top+objs[i][2]*(cellY+space));
+						ctx.strokeRect(dist_left+objs[i][1]*(cellX+space), dist_top + objs[i][2]*(cellY+space), objs[i][3]*(cellX+space), objs[i][4]*(cellY+space));
 					}
 				}
 			}
@@ -179,10 +208,11 @@
 			function updateBelow() {
 				belowCtx.clearRect(0,0,below.width,below.height);
 				if(mousePressed) {
-					belowCtx.fillText(components[selectedComponent],sx*(cellX+space),sy*(cellY+space)-5);
-					belowCtx.strokeRect(sx*(cellX+space), sy*(cellY+space), (ex-sx)*(cellX+space), (ey-sy)*(cellY+space));
+					console.log(sx + " x " + sy + " | " + ex + " x " + ey);
+					belowCtx.fillText(components[selectedComponent],dist_left+(sx*(cellX+space)),dist_top+(sy*(cellY+space)-5));
+					belowCtx.strokeRect(dist_left+sx*(cellX+space), dist_top+sy*(cellY+space), (ex-sx)*(cellX+space), (ey-sy)*(cellY+space));
 
-					belowCtx.fillText((ex-sx) + " x " + (ey-sy),sx*(cellX+space)+((ex-sx)*(cellX+space)/2),sy*(cellY+space)+((ey-sy)*(cellY+space)/2));
+					belowCtx.fillText((ex-sx) + " x " + (ey-sy),dist_left+sx*(cellX+space)+((ex-sx)*(cellX+space)/2),dist_top+sy*(cellY+space)+((ey-sy)*(cellY+space)/2));
 				}
 			}
 
@@ -195,7 +225,7 @@
 					} else {
 						for(var j = 1; j < objs[i].length; j++) {
 							s += objs[i][j];
-							if(j == 1 || s == 3) {
+							if(j == 1 || j == 3) {
 								s += ",";
 							} else {
 								s += ";";
@@ -204,9 +234,37 @@
 					}
 					s += "]\n";
 				}
-				alert(s);
+				textarea.value = s;
+			}
+
+			function import_formspec(e) {
+				if(e.keyCode == 13) {
+					console.log(e.keyCode);
+					objs = [];
+					s = textarea.value;
+					var lines = s.split("\n");
+					for(var i = 0; i < lines.length; i++) {
+						if(lines[i] == "") {
+							continue;
+						}
+						var a = lines[i].split("[");
+						var name = a[0];
+						var params = a[1].substr(0, a[1].length-1).split(new RegExp('[,;]', 'g'));
+						
+
+						var o = [];				
+						o.push(name);
+						for(var j = 0; j < params.length; j++) {
+							o.push(params[j]);
+						}
+
+						objs.push(o);					
+					}
+					draw();
+				}
 			}
 		</script>
+		<textarea id="code"></textarea>
 		<canvas id = "screen"></canvas>
 		<canvas id = "below"></canvas>
 	</body>
