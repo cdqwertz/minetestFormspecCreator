@@ -44,7 +44,7 @@
 
 			var cellX = 50;
 			var cellY = 50;
-			var space = 5;
+			var space = 0;
 
 
 			var sx = -1;
@@ -52,8 +52,8 @@
 			var ex = -1;
 			var ey = -1;
 
-			var dist_top = 100;
-			var dist_left = 100;
+			var dist_top = 50;
+			var dist_left = 50;
 
 			var components = ["size", "list", "label", "button", "field"];
 			var selectedComponent = 3;
@@ -139,22 +139,31 @@
 				} else {
 					d = -1;
 				}
-				selectedComponent += d;
+				if(e.shiftKey) {
+					cellX += d*5;
+					cellY += d*5;
 
-				if(selectedComponent < 0) {
-					selectedComponent = components.length-1;
-				}
-				if(selectedComponent > components.length-1) {
-					selectedComponent = 0;
-				}
+					cellX = Math.max(cellX, 5);
+					cellY = Math.max(cellY, 5);
 
-				updateBelow();
+					draw();
+					updateBelow();
+				} else {
+					selectedComponent += d;
+
+					if(selectedComponent < 0) {
+						selectedComponent = components.length-1;
+					}
+					if(selectedComponent > components.length-1) {
+						selectedComponent = 0;
+					}
+
+					updateBelow();
+				}
+				return false;
 			}
 
 			function keyDown(e) {
-				//if(e.keyCode == 69) {
-					//export_formspec();
-				//}
 			}
 
 			function addObject() {
