@@ -24,6 +24,25 @@
 				width : 50%;
 				height : 100%;
 				z-index : 2;
+
+				resize: none;
+				outline : none;
+				border : 1px solid #AAAAAA;
+
+				box-shadow: 0px 0px 5px grey;
+			}
+
+			#code:focus {
+				position : fixed;
+				left : 50%;
+				top : 0;
+				width : 50%;
+				height : 100%;
+				z-index : 2;
+
+				border : 1px solid #777777;
+
+				box-shadow: 0px 0px 10px grey;
 			}
 		</style>
 	</head>
@@ -273,7 +292,7 @@
 				}
 			}
 		</script>
-		<textarea id="code"></textarea>
+		<textarea placeholder="Formspec code" id="code"></textarea>
 		<canvas id = "screen"></canvas>
 		<canvas id = "below"></canvas>
 	</body>
