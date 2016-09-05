@@ -18,31 +18,56 @@
 			}
 
 			#code {
-				position : fixed;
+				position : absolute;
 				left : 50%;
 				top : 0;
 				width : 50%;
-				height : 100%;
-				z-index : 2;
+				height : calc(100% - 70px);
+				z-index : 3;
 
 				resize: none;
 				outline : none;
 				border : 1px solid #AAAAAA;
 
-				box-shadow: 0px 0px 5px grey;
+				box-shadow: 0px 0px 1px grey;
+				overflow : hidden;
+				transition-duration : 0.3s;
 			}
 
 			#code:focus {
-				position : fixed;
+				box-shadow: 0px 0px 2px grey;
+				transition-duration : 0.3s;
+			}
+
+			#menu {
+				position : absolute;
 				left : 50%;
-				top : 0;
+				bottom : 0;
 				width : 50%;
-				height : 100%;
-				z-index : 2;
+				height : 70px;
+				z-index : 2;	
 
-				border : 1px solid #777777;
+				box-shadow: 0px 0px 1px grey;
+				background : #F8F8F8;
 
-				box-shadow: 0px 0px 10px grey;
+				overflow : hidden;
+			}
+
+			#menu button{
+				margin-left : 20px;
+				margin-top : 20px;
+				padding : 10px;
+				
+				border : 1px solid #AAAAAA;
+				background : #F0F0F0;
+				border-radius : 2px;
+				
+				transition-duration : 0.3s;
+			}
+
+			#menu button:hover{
+				box-shadow: 0px 0px 3px grey;
+				transition-duration : 0.3s;
 			}
 		</style>
 	</head>
@@ -291,8 +316,37 @@
 					draw();
 				}
 			}
+
+			function convert_to_lua() {
+				var output = "";
+				var lines = textarea.value.split("\n");
+				var name = prompt("Name : ")
+
+				for(var i = 0; i < lines.length; i++) {
+					if(i == 0) {
+						output += "local " + name + " = \"" + lines[i] + "\"\n";
+					} else {
+						if(lines[i] != "") {
+							output += name + " = "+name+" .. \"" + lines[i] + "\"\n";
+						}
+					}
+				}
+	
+				alert(output);
+			}
+
+			function show_help() {
+				var title = "Minetest Formspec Creator\nby cd2 (cdqwertz)\nGitHub : https://github.com/cdqwertz/minetestFormspecCreator\n\n"
+				var info = "Click and drag in the area on the left to add new gui components.\nUse the mouse wheel to change the component type.\nYou can also just edit the code on the right.\n\n";
+				var end = "Have fun!"
+				alert(title + info + "Components : " + components.join(",") + "\n\n" + end);
+			}
 		</script>
 		<textarea placeholder="Formspec code" id="code"></textarea>
+		<div id = "menu">
+			<button onclick="convert_to_lua();">Lua</button>
+			<button onclick="show_help();">Help</button>
+		</div>
 		<canvas id = "screen"></canvas>
 		<canvas id = "below"></canvas>
 	</body>
