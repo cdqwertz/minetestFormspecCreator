@@ -217,19 +217,19 @@
 					}
 
 					if(components[selectedComponent] == "list") {
-						objs.push(["list", prompt("Inventory Location:") || "current_player", prompt("Name:") || "main", sx, sy, ex-sx, ey-sy]);
+						objs.push(["list", "current_player", "main", sx, sy, ex-sx, ey-sy]);
 					}
 
 					if(components[selectedComponent] == "label") {
-						objs.push(["label", sx, sy, prompt("Text:") || ""]);
+						objs.push(["label", sx, sy, ""]);
 					}
 					
 					if(components[selectedComponent] == "button") {
-						objs.push(["button", sx, sy, ex-sx, ey-sy, prompt("Name:") || "btn", prompt("Text:") || "Button"]);
+						objs.push(["button", sx, sy, ex-sx, ey-sy, "btn", "Button"]);
 					}
 
 					if(components[selectedComponent] == "field") {
-						objs.push(["field", sx, sy, ex-sx, ey-sy, prompt("Name:") || "field", prompt("Text:") || "Field", prompt("Default:") || ""]);
+						objs.push(["field", sx, sy, ex-sx, ey-sy, "field", "Field", ""]);
 					}
 
 					draw();
@@ -266,6 +266,8 @@
 					belowCtx.strokeRect(dist_left+sx*(cellX+space), dist_top+sy*(cellY+space), (ex-sx)*(cellX+space), (ey-sy)*(cellY+space));
 
 					belowCtx.fillText((ex-sx) + " x " + (ey-sy),dist_left+sx*(cellX+space)+((ex-sx)*(cellX+space)/2),dist_top+sy*(cellY+space)+((ey-sy)*(cellY+space)/2));
+				} else {
+					belowCtx.fillText(components[selectedComponent],10,20);
 				}
 			}
 
@@ -283,6 +285,9 @@
 							} else {
 								s += ";";
 							}
+						}
+						if(s.endsWith(";") || s.endsWith(",")) {
+							s=s.substr(0, s.length -1);
 						}
 					}
 					s += "]\n";
